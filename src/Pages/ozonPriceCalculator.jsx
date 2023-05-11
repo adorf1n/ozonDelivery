@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from "react";
-import { getTownList, getTownPrice } from "../API/request";
+import { useRef, useState } from "react";
 import styles from "./ozonPriceCalculator.module.scss";
 import DropdownCard from "../components/dropdownCard";
 import { useOnClickOutside } from "../customHooks/customHooks";
+import { townPrice } from "../data/townPrice";
+import { townList } from "../data/townList";
 
 const OzonPriceCalculator = () => {
-  const [townList, setTownList] = useState([]);
   const [weight, setWeight] = useState("");
   const [price, setPrice] = useState("");
   const [optionsToggler, setOptionsToggler] = useState(false);
@@ -15,17 +15,11 @@ const OzonPriceCalculator = () => {
   });
   const [filterTowns, setFilterTowns] = useState("");
   const [townInput, setTowninput] = useState("");
-
   const ref = useRef();
-
   const weightHandler = (event) => {
     event.preventDefault();
     setWeight(event.target.value);
   };
-
-  useEffect(() => {
-    getTownList().then((data) => setTownList(data.townlist));
-  }, []);
 
   const currentTownSelect = (data) => {
     setSelectedTown(data);
@@ -35,13 +29,21 @@ const OzonPriceCalculator = () => {
   };
 
   const showPrice = async () => {
-    const pricelist = await getTownPrice(selectedTown.ID);
-    for (let index = 0; index < pricelist.pricelist.length; ++index) {
+    let currentTownPriceList = [];
+    for (let index = 0; index < townPrice.length; index++) {
+    if(townPrice[index].TownID==selectedTown.ID)
+      {
+        currentTownPriceList.push(townPrice[index])
+      }
+    }
+    console.log(currentTownPriceList);
+    
+    for (let index = 0; index < currentTownPriceList.length; ++index) {
       if (
-        weight >= pricelist.pricelist[index].MinWeight === true &&
-        weight <= pricelist.pricelist[index].MaxWeight === true
+        weight >= currentTownPriceList[index].MinWeight === true &&
+        weight <= currentTownPriceList[index].MaxWeight === true
       ) {
-        const currentPrice = await pricelist.pricelist[index].Price;
+        const currentPrice = await currentTownPriceList[index].Price;
         setPrice({ price: currentPrice });
       } else if (weight <= 0 || weight > 20000) {
         setPrice("Такого весового диапазона нет");
